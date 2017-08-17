@@ -52,7 +52,7 @@
 
                     <additionalClasspathElements>
                         <additionalClasspathElement>${project.basedir}/../src/test/resources</additionalClasspathElement>
-                    </additionalClasspathElements>                                        
+                    </additionalClasspathElements>
                 </configuration>
             </plugin>
         </plugins>
@@ -71,6 +71,20 @@
     </dependencyManagement>
 
     <dependencies>
+        <dependency>
+            <groupId>org.aesh</groupId>
+            <artifactId>aesh-readline</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>junit</groupId>
+                    <artifactId>junit</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.jboss.aesh</groupId>
+                    <artifactId>aesh</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
         <dependency>
             <groupId>org.apache.directory.api</groupId>
             <artifactId>api-ldap-codec-standalone</artifactId>
