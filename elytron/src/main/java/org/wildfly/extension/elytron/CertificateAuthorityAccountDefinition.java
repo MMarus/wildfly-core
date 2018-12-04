@@ -78,10 +78,11 @@ import org.wildfly.security.x500.cert.acme.AcmeMetadata;
  */
 class CertificateAuthorityAccountDefinition extends SimpleResourceDefinition {
     private static final String DIRECTORY = "directory";
+    private static final String URL = "http://localhost:4001/";
 
     enum CertificateAuthority {
-
-        LETS_ENCRYPT("LetsEncrypt", "https://acme-v02.api.letsencrypt.org/" + DIRECTORY, "https://acme-staging-v02.api.letsencrypt.org/" + DIRECTORY);
+        //TODO: replace with the configuration
+        LETS_ENCRYPT("LetsEncrypt", URL + DIRECTORY, URL + DIRECTORY);
 
         private final String name;
         private final String url;
