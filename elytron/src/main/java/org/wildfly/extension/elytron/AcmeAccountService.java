@@ -19,7 +19,6 @@
 package org.wildfly.extension.elytron;
 
 import static org.wildfly.extension.elytron._private.ElytronSubsystemMessages.ROOT_LOGGER;
-import static org.wildfly.extension.elytron.CertificateAuthorityAccountDefinition.CertificateAuthority;
 
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -39,6 +38,7 @@ import org.jboss.msc.value.InjectedValue;
 import org.wildfly.common.function.ExceptionSupplier;
 import org.wildfly.security.credential.source.CredentialSource;
 import org.wildfly.security.x500.cert.acme.AcmeAccount;
+import org.wildfly.security.x500.cert.acme.CertificateAuthority;
 
 /**
  * A {@link Service} responsible for a single {@link AcmeAccount} instance.
@@ -71,8 +71,10 @@ class AcmeAccountService implements Service<AcmeAccount> {
             KeyStore keyStore = keyStoreInjector.getValue();
 
             AcmeAccount.Builder acmeAccountBuilder = AcmeAccount.builder()
-                    .setServerUrl(certificateAuthority.getUrl())
-                    .setStagingServerUrl(certificateAuthority.getStagingUrl());
+                    .setServerUrl(certificateAuthority.getUrl());
+            if (certificateAuthority.getStagingUrl() != null) {
+                acmeAccountBuilder.setStagingServerUrl(certificateAuthority.getStagingUrl());
+            }
             if (! contactUrlsList.isEmpty()) {
                 acmeAccountBuilder = acmeAccountBuilder.setContactUrls(contactUrlsList.toArray(new String[contactUrlsList.size()]));
             }

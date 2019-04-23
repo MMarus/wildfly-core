@@ -559,4 +559,10 @@ public interface ElytronSubsystemMessages extends BasicLogger {
 
     @Message(id = 1061, value = "Value of host context map '%s' is not a valid hostname.")
     OperationFailedException invalidHostContextMapValue(String hostname);
+
+    @Message(id = 1062, value = "Value for attribute '%s' is invalid.")
+    OperationFailedException invalidAttributeValue(String attributeName);
+
+    @Message(id = 1063, value = "LetsEncrypt certificate authority is configured by default.")
+    OperationFailedException letsEncryptNameNotAllowed();
 }
