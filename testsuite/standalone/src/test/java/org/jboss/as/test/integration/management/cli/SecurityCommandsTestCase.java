@@ -100,7 +100,7 @@ public class SecurityCommandsTestCase {
     private static final String CA_ACCOUNT_ALIAS = "account6";
     private static final String CA_ACCOUNT_NAME = "CertAuthorityAccount";
     private static final String KEYSTORE_FILE = "test.keystore";
-    private static final String KEYSTORE_PASSWORD = "secret";
+    private static final String KEYSTORE_PASSWORD = "Elytron";
     private static final String certificateAlias = "server";
     private static ClientAndServer server;
 
