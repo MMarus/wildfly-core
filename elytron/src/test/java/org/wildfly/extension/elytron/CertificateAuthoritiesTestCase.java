@@ -53,6 +53,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockserver.integration.ClientAndServer;
+import org.wildfly.extension.elytron._private.test.AcmeMockServerBuilder;
 import org.wildfly.security.WildFlyElytronProvider;
 import org.wildfly.security.x500.cert.acme.AcmeAccount;
 

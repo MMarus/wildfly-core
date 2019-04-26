@@ -38,11 +38,11 @@ import static org.mockserver.model.HttpResponse.response;
  * @author <a href="mailto:fjuma@redhat.com">Farah Juma</a>
  */
 
-class AcmeMockServerBuilder {
+public class AcmeMockServerBuilder {
 
     private ClientAndServer server; // used to simulate a Let's Encrypt server instance
 
-    AcmeMockServerBuilder(ClientAndServer server) {
+    public AcmeMockServerBuilder(ClientAndServer server) {
         server.reset();
         this.server = server;
     }
@@ -149,7 +149,17 @@ class AcmeMockServerBuilder {
                     try {
                         // Simply validate that the file was created and has the correct contents (attempting to retrieve
                         // the file via the challenge url would require the Undertow subsystem)
-                        try (InputStream inputStream = new BufferedInputStream(new FileInputStream(new File(System.getProperty("jboss.home.dir") + verifyChallengePath)))) {
+                        String jbossHome = AcmeTestUtils.getSystemProperty("jboss.inst");
+                        if (jbossHome == null) {
+                            jbossHome = AcmeTestUtils.getJBossHome();
+                        }
+
+                        if (jbossHome == null) {
+                            throw new IllegalArgumentException("Could not find the JBoss home directory");
+                        }
+
+                        String challengeDir = jbossHome +  verifyChallengePath;
+                        try (InputStream inputStream = new BufferedInputStream(new FileInputStream(new File(challengeDir)))) {
                             challengeResponseBytes = IOUtils.toByteArray(inputStream);
                         }
                     } catch (Exception e) {

@@ -57,8 +57,8 @@ import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.mockserver.integration.ClientAndServer;
 import org.wildfly.core.testrunner.WildflyTestRunner;
+import org.wildfly.extension.elytron._private.test.AcmeTestUtils;
 
-import static org.jboss.as.test.integration.management.cli.AcmeMockServerBuilder.setupTestObtainCertificateWithKeySize;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -86,7 +86,7 @@ public class SecurityCommandsTestCase {
     private static final String CLIENT_CERTIFICATE_FILE = "cli-security-test-client-certificate.pem";
     private static final String KEY_STORE_PASSWORD = "secret";
 
-    private static final String KEY_STORE_NAME = "ks1";
+    private static final String KEY_STORE_NAME = AcmeTestUtils.KEYSTORE_NAME;
     private static final String KEY_MANAGER_NAME = "km1";
     private static final String TRUST_STORE_NAME = "ts1";
     private static final String TRUST_MANAGER_NAME = "tm1";
@@ -99,8 +99,9 @@ public class SecurityCommandsTestCase {
     private static final String ACCOUNTS_KEYSTORE_PASSWORD = "elytron";
     private static final String CA_ACCOUNT_ALIAS = "account6";
     private static final String CA_ACCOUNT_NAME = "CertAuthorityAccount";
+
     private static final String KEYSTORE_FILE = "test.keystore";
-    private static final String KEYSTORE_PASSWORD = "Elytron";
+    private static final String KEYSTORE_PASSWORD = AcmeTestUtils.KEYSTORE_PASSWORD;
     private static final String certificateAlias = "server";
     private static ClientAndServer server;
 
@@ -118,8 +119,23 @@ public class SecurityCommandsTestCase {
         testEnableLetsEncryptSSLInteractiveConfirm(null, true);
     }
 
+//    @Test
+//    public void testObtainCertificateWithKeySize() throws Exception {
+//        addKeyStore(ACCOUNTS_KEYSTORE, ACCOUNTS_KEYSTORE_NAME, ACCOUNTS_KEYSTORE_PASSWORD);
+//        addCertificateAuthorityAccount("account6");
+//        addKeyStore(); // to store the obtained certificate
+//        server = AcmeTestUtils.setupTestObtainCertificateWithKeySize(server);
+//        String alias = "server";
+//        String keyAlgorithmName = "RSA";
+//        int keySize = 4096;
+//        KeyStore keyStore = getKeyStore(KEYSTORE_NAME);
+//        assertFalse(keyStore.containsAlias(alias));
+//        obtainCertificate(keyAlgorithmName, keySize, "inlneseppwkfwew.com", alias, keyStore);
+//    }
+
+
     private void testEnableLetsEncryptSSLInteractiveConfirm(String mgmtInterface, boolean useCaAccount) throws Exception {
-        setupTestObtainCertificateWithKeySize(server, useCaAccount);
+        AcmeTestUtils.setupTestObtainCertificateWithKeySize(server, useCaAccount);
         assertEmptyModel(mgmtInterface);
 
         CliProcessWrapper cli = new CliProcessWrapper().
@@ -140,10 +156,10 @@ public class SecurityCommandsTestCase {
             Path KSFile = jbossStandaloneConfig.resolve(KEYSTORE_FILE);
 
             //Copy the pre-generated key stores to the server config
-            Files.copy(AcmeMockServerBuilder.class.getResourceAsStream(ACCOUNTS_KEYSTORE_FILE_NAME),
+            Files.copy(AcmeTestUtils.class.getResourceAsStream(ACCOUNTS_KEYSTORE_FILE_NAME),
                     jbossStandaloneConfig.resolve(ACCOUNTS_KEYSTORE_FILE_NAME),
                     java.nio.file.StandardCopyOption.REPLACE_EXISTING);
-            Files.copy(AcmeMockServerBuilder.class.getResourceAsStream(KEYSTORE_FILE), KSFile, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+            Files.copy(AcmeTestUtils.class.getResourceAsStream(KEYSTORE_FILE), KSFile, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
 
             //Check that the key-store does not contain server certificate
             assertFalse(loadKeyStore(KSFile.toString(), KEYSTORE_PASSWORD).containsAlias(certificateAlias));
