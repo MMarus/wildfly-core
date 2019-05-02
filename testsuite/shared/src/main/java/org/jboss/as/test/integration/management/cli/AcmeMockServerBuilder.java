@@ -107,18 +107,18 @@ class AcmeMockServerBuilder {
                 "", orderLocation, orderCertificateStatusCode, useProblemContentType);
     }
 
-    public AcmeMockServerBuilder addAuthorizationResponseBody(String expectedAuthorizationUrl, String authorizationResponseBody) {
+    public AcmeMockServerBuilder addAuthorizationResponseBody(String expectedAuthorizationUrl, String authorizationResponseBody, String authorizationReplayNonce) {
         server.when(
                 request()
-                        .withMethod("GET")
-                        .withPath(expectedAuthorizationUrl)
-                        .withBody(""),
+                        .withMethod("POST")
+                        .withPath(expectedAuthorizationUrl),
                 Times.exactly(10))
                 .respond(
                         response()
                                 .withHeader("Retry-After", "0")
                                 .withHeader("Cache-Control", "public, max-age=0, no-cache")
                                 .withHeader("Content-Type", "application/json")
+                                .withHeader("Replay-Nonce", authorizationReplayNonce)
                                 .withBody(authorizationResponseBody));
         return this;
     }
@@ -126,13 +126,13 @@ class AcmeMockServerBuilder {
     public AcmeMockServerBuilder addChallengeRequestAndResponse(String expectedChallengeRequestBody, String expectedChallengeUrl, String challengeResponseBody,
                                                                 String challengeReplayNonce, String challengeLocation, String challengeLink,
                                                                 int challengeStatusCode, boolean useProblemContentType, String verifyChallengePath,
-                                                                String challengeFileContents, String expectedAuthorizationUrl, String authorizationResponseBody) {
+                                                                String challengeFileContents, String expectedAuthorizationUrl, String authorizationResponseBody,
+                                                                String authorizationReplayNonce) {
         server.when(
                 request()
                         .withMethod("POST")
                         .withPath(expectedChallengeUrl)
-                        .withHeader("Content-Type", "application/jose+json")
-                        .withBody(expectedChallengeRequestBody),
+                        .withHeader("Content-Type", "application/jose+json"),
                 Times.once())
                 .respond(request -> {
                     HttpResponse response = response()
@@ -167,7 +167,7 @@ class AcmeMockServerBuilder {
                         throw new RuntimeException(e);
                     }
                     if (challengeFileContents.equals(new String(challengeResponseBytes, StandardCharsets.UTF_8))) {
-                        addAuthorizationResponseBody(expectedAuthorizationUrl, authorizationResponseBody);
+                        addAuthorizationResponseBody(expectedAuthorizationUrl, authorizationResponseBody, authorizationReplayNonce);
                     }
                     return response;
                 });
@@ -185,16 +185,17 @@ class AcmeMockServerBuilder {
                 orderLocation, finalizeStatusCode, useProblemContentType);
     }
 
-    public AcmeMockServerBuilder addCertificateRequestAndResponse(String certificateUrl, String certificateResponseBody, int certificateStatusCode) {
+    public AcmeMockServerBuilder addCertificateRequestAndResponse(String certificateUrl, String certificateResponseBody, int certificateStatusCode, String certificateReplayNonce) {
         HttpResponse response = response()
                 .withHeader("Retry-After", "0")
                 .withHeader("Cache-Control", "public, max-age=0, no-cache")
                 .withHeader("Content-Type", "application/pem-certificate-chain")
+                .withHeader("Replay-Nonce", certificateReplayNonce)
                 .withBody(certificateResponseBody)
                 .withStatusCode(certificateStatusCode);
         server.when(
                 request()
-                        .withMethod("GET")
+                        .withMethod("POST")
                         .withPath(certificateUrl)
                         .withBody(""),
                 Times.once())
@@ -203,16 +204,17 @@ class AcmeMockServerBuilder {
         return this;
     }
 
-    public AcmeMockServerBuilder addCheckOrderRequestAndResponse(String orderUrl, String checkCertificateResponseBody, int checkCertificateStatusCode) {
+    public AcmeMockServerBuilder addCheckOrderRequestAndResponse(String orderUrl, String checkCertificateResponseBody, int checkCertificateStatusCode, String checkOrderReplayNonce) {
         HttpResponse response = response()
                 .withHeader("Retry-After", "0")
                 .withHeader("Cache-Control", "public, max-age=0, no-cache")
                 .withHeader("Content-Type", "application/json")
+                .withHeader("Replay-Nonce", checkOrderReplayNonce)
                 .withBody(checkCertificateResponseBody)
                 .withStatusCode(checkCertificateStatusCode);
         server.when(
                 request()
-                        .withMethod("GET")
+                        .withMethod("POST")
                         .withPath(orderUrl)
                         .withBody(""),
                 Times.once())
@@ -536,17 +538,29 @@ class AcmeMockServerBuilder {
                 "v1uhpkgT9uwbRw0Cs5DMdxT/LgIUSfUTKU83GNrbrQNYinkJ77i6wG0=" + System.lineSeparator() +
                 "-----END CERTIFICATE-----" + System.lineSeparator();
 
+//        final String QUERY_ACCT_REPLAY_NONCE_1 = "0bL9ah0ITjdvggt0P77_o8dspCfmnOen-rimw7E9qwM";
+//        final String QUERY_ACCT_REPLAY_NONCE_2 = "na_bjoXbpRlEFD8Bb2shGzT2Xiy6_ju4Gs6YJCPPs1E";
+//        final String ORDER_CERT_REPLAY_NONCE = "RvM3fgI2Z08HTzhbwKA-EnOrJtnGqV81tOlfErZIAK4";
+        final String AUTHZ_REPLAY_NONCE = "KvD4oVF2ahe2w2RtqbjYP9nJH_xzVWeHJIlhDRNn-N4";
+//        final String CHALLENGE_REPLAY_NONCE = "A-3-ge_TjcQwoYdlSJX4YtznB5fPVME627MwK-U_GkM";
+        final String UPDATED_AUTHZ_REPLAY_NONCE = "jBxAXwYy9_19Bue5Wcij8aiAegiC4nqGTFD_42k3HQQ";
+//
+//        final String FINALIZE_REPLAY_NONCE = "l_OFFmSJQuq27CFQSG6N-2vbNCbyHG7E_RyF3J45wvg";
+//
+        final String CHECK_ORDER_REPLAY_NONCE = "yuXkl473reHRMcaVgTyTZ1AWO8Z_HbiHo9oj3RdoUog";
+        final String CERT_REPLAY_NONCE = "9Ir87CU21P5mNNGfhBASf2dkD7QpJdZfB9BGMIzQW9Q";
+
         return new AcmeMockServerBuilder(s)
                 .addDirectoryResponseBody(DIRECTORY_RESPONSE_BODY)
                 .addNewNonceResponse(NEW_NONCE_RESPONSE)
                 .addNewAccountRequestAndResponse(QUERY_ACCT_REQUEST_BODY_1, QUERY_ACCT_RESPONSE_BODY_1, QUERY_ACCT_REPLAY_NONCE_1, ACCT_LOCATION, 200)
                 .updateAccountRequestAndResponse(QUERY_ACCT_REQUEST_BODY_2, QUERY_ACCT_RESPONSE_BODY_2, QUERY_ACCT_REPLAY_NONCE_2, ACCT_PATH, 200)
                 .orderCertificateRequestAndResponse(ORDER_CERT_REQUEST_BODY, ORDER_CERT_RESPONSE_BODY, ORDER_CERT_REPLAY_NONCE, ORDER_LOCATION, 201, false)
-                .addAuthorizationResponseBody(AUTHZ_URL, AUTHZ_RESPONSE_BODY)
-                .addChallengeRequestAndResponse(CHALLENGE_REQUEST_BODY, CHALLENGE_URL, CHALLENGE_RESPONSE_BODY, CHALLENGE_REPLAY_NONCE, CHALLENGE_LOCATION, CHALLENGE_LINK, 200, false, VERIFY_CHALLENGE_URL, CHALLENGE_FILE_CONTENTS, AUTHZ_URL, UPDATED_AUTHZ_RESPONSE_BODY)
+                .addAuthorizationResponseBody(AUTHZ_URL, AUTHZ_RESPONSE_BODY, AUTHZ_REPLAY_NONCE)
+                .addChallengeRequestAndResponse(CHALLENGE_REQUEST_BODY, CHALLENGE_URL, CHALLENGE_RESPONSE_BODY, CHALLENGE_REPLAY_NONCE, CHALLENGE_LOCATION, CHALLENGE_LINK, 200, false, VERIFY_CHALLENGE_URL, CHALLENGE_FILE_CONTENTS, AUTHZ_URL, UPDATED_AUTHZ_RESPONSE_BODY, UPDATED_AUTHZ_REPLAY_NONCE)
                 .addFinalizeRequestAndResponse(FINALIZE_RESPONSE_BODY, FINALIZE_REPLAY_NONCE, FINALIZE_URL, FINALIZE_LOCATION, 200)
-                .addCheckOrderRequestAndResponse(CHECK_ORDER_URL, CHECK_ORDER_RESPONSE_BODY, 200)
-                .addCertificateRequestAndResponse(CERT_URL, CERT_RESPONSE_BODY, 200)
+                .addCheckOrderRequestAndResponse(CHECK_ORDER_URL, CHECK_ORDER_RESPONSE_BODY, 200, CHECK_ORDER_REPLAY_NONCE)
+                .addCertificateRequestAndResponse(CERT_URL, CERT_RESPONSE_BODY, 200, CERT_REPLAY_NONCE)
                 .build();
     }
 
