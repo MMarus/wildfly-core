@@ -1225,7 +1225,7 @@ public abstract class ElytronUtil {
         return Util.isSuccess(ctx.getModelControllerClient().execute(builder.buildRequest()));
     }
 
-    public static ModelNode addCertificateAuthority(CommandContext ctx, CertificateAuthority certificateAuthority) throws Exception {
+    public static ModelNode addCertificateAuthority(CertificateAuthority certificateAuthority) throws Exception {
         DefaultOperationRequestBuilder builder = new DefaultOperationRequestBuilder();
         builder.setOperationName(Util.ADD);
         builder.addNode(Util.SUBSYSTEM, Util.ELYTRON);
@@ -1234,7 +1234,7 @@ public abstract class ElytronUtil {
         return builder.buildRequest();
     }
 
-    public static ModelNode addCertificateAuthorityAccount(CommandContext ctx, String name, String password, String alias, String keyStoreName, List<String> contactUrls, CertificateAuthority customCertificateAuthority) throws Exception {
+    public static ModelNode addCertificateAuthorityAccount(String name, String password, String alias, String keyStoreName, List<String> contactUrls, CertificateAuthority customCertificateAuthority) throws Exception {
         DefaultOperationRequestBuilder builder = new DefaultOperationRequestBuilder();
         builder.setOperationName(Util.ADD);
         builder.addNode(Util.SUBSYSTEM, Util.ELYTRON);
@@ -1259,7 +1259,7 @@ public abstract class ElytronUtil {
         return modelNodes;
     }
 
-    public static ModelNode removeCertificateAuthorityAccount(CommandContext ctx, String name) throws Exception {
+    public static ModelNode removeCertificateAuthorityAccount(String name) throws Exception {
         DefaultOperationRequestBuilder builder = new DefaultOperationRequestBuilder();
         builder.setOperationName(Util.REMOVE);
         builder.addNode(Util.SUBSYSTEM, Util.ELYTRON);
@@ -1267,8 +1267,7 @@ public abstract class ElytronUtil {
         return builder.buildRequest();
     }
 
-    public static ModelNode obtainCertificateRequest(CommandContext ctx,
-                                                     String keyStoreName,
+    public static ModelNode obtainCertificateRequest(String keyStoreName,
                                                      String alias,
                                                      String password,
                                                      List<String> domainNames,

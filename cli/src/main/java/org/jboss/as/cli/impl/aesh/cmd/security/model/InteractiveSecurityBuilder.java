@@ -261,7 +261,7 @@ public class InteractiveSecurityBuilder extends SSLSecurityBuilder {
                     }
                 }
                 if (!agreedToTOS) {
-                    throw new CommandException("Ignoring, command not executed.");
+                    throw new CommandException("Ignoring, command not executed. You need to accept the TOS to create account and obtain certificates.");
                 }
             }
         }
@@ -492,7 +492,7 @@ public class InteractiveSecurityBuilder extends SSLSecurityBuilder {
             if(useLetsEncrypt) {
                 if (caAccount == null) {
                     if (certificateAuthority != CertificateAuthority.getDefault()) {
-                        ModelNode requestAddCertAuth = ElytronUtil.addCertificateAuthority(ctx, certificateAuthority);
+                        ModelNode requestAddCertAuth = ElytronUtil.addCertificateAuthority(certificateAuthority);
                         if(buildRequest)
                             addStep(requestAddCertAuth, NO_DESC);
                         else {
@@ -507,7 +507,7 @@ public class InteractiveSecurityBuilder extends SSLSecurityBuilder {
 
                     }
                     ModelNode requestAddAccKS = ElytronUtil.addKeyStore(ctx, accountKeyStoreName, new File(accountKeyStoreFile), relativeTo, accountKeyStorePassword, type, false, null);
-                    ModelNode requestAddCertAuthAcc = ElytronUtil.addCertificateAuthorityAccount(ctx,
+                    ModelNode requestAddCertAuthAcc = ElytronUtil.addCertificateAuthorityAccount(
                             certAuthorityAccountName,
                             certAuthorityAccountPassword,
                             certAuthorityAccountAlias,
@@ -542,7 +542,7 @@ public class InteractiveSecurityBuilder extends SSLSecurityBuilder {
                 needKeyStoreStore(keyStoreName);
 
                 //Now we’re ready to start obtaining and managing certificates
-                ModelNode request3 = ElytronUtil.obtainCertificateRequest(ctx, keyStoreName, alias, password, domainNames, certAuthorityAccountName, agreedToTOS, KEY_SIZE, KEY_ALG);
+                ModelNode request3 = ElytronUtil.obtainCertificateRequest(keyStoreName, alias, password, domainNames, certAuthorityAccountName, agreedToTOS, KEY_SIZE, KEY_ALG);
                 addStep(request3, new FailureDescProvider() {
                     @Override
                     public String stepFailedDescription() {
@@ -632,7 +632,7 @@ public class InteractiveSecurityBuilder extends SSLSecurityBuilder {
         // REMOVE WHEN WFCORE-3491 is fixed.
         if (keyStoreName != null) {
             if(useLetsEncrypt && caAccount == null) {
-                ModelNode req = ElytronUtil.removeCertificateAuthorityAccount(ctx, certAuthorityAccountName);
+                ModelNode req = ElytronUtil.removeCertificateAuthorityAccount(certAuthorityAccountName);
                 SecurityCommand.execute(ctx, req, SecurityCommand.DEFAULT_FAILURE_CONSUMER, false);
                 req = ElytronUtil.removeKeyStore(ctx, accountKeyStoreName);
                 SecurityCommand.execute(ctx, req, SecurityCommand.DEFAULT_FAILURE_CONSUMER, false);

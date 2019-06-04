@@ -134,6 +134,7 @@ public class SecurityCommandsTestCase {
             Assert.assertTrue(cli.pushLineAndWaitForResults(LOCALHOST_ACME_URL, "Do you agree to Let's Encrypt terms of service? y/n:"));
             //Check that the interactive mode exits after rejecting the TOS
             Assert.assertTrue(cli.pushLineAndWaitForResults("n", null));
+            Assert.assertTrue(cli.getOutput().contains("Ignoring, command not executed. You need to accept the TOS to create account and obtain certificates."));
         } catch (Throwable ex) {
             throw new Exception(cli.getOutput(), ex);
         } finally {
@@ -174,6 +175,7 @@ public class SecurityCommandsTestCase {
             Assert.assertTrue(cli.pushLineAndWaitForResults(certificateAlias, "Enable SSL Mutual Authentication"));
             Assert.assertTrue(cli.pushLineAndWaitForResults("n", "Do you confirm"));
             Assert.assertTrue(cli.pushLineAndWaitForResults("y", null));
+            Assert.assertTrue(cli.getOutput().contains("FakeCaAccount not found"));
 
             //Check that the security command failed and the keystore does not contain the new certificate alias
             assertFalse(loadKeyStore(KSFile.toString(), KEYSTORE_PASSWORD).containsAlias(certificateAlias));
@@ -187,17 +189,16 @@ public class SecurityCommandsTestCase {
 
     @Test
     public void testEnableLetsEncryptSSLInteractiveConfirm() throws Exception {
-        testEnableLetsEncryptSSLInteractiveConfirm(null, false);
+        testEnableLetsEncryptSSLInteractiveConfirm(false);
     }
 
     @Test
     public void testEnableLetsEncryptSSLInteractiveConfirmUseCaAccount() throws Exception {
-        testEnableLetsEncryptSSLInteractiveConfirm(null, true);
+        testEnableLetsEncryptSSLInteractiveConfirm(true);
     }
 
-    private void testEnableLetsEncryptSSLInteractiveConfirm(String mgmtInterface, boolean useCaAccount) throws Exception {
+    private void testEnableLetsEncryptSSLInteractiveConfirm(boolean useCaAccount) throws Exception {
         setupTestObtainCertificateWithKeySize(server, useCaAccount);
-        assertEmptyModel(mgmtInterface);
 
         CliProcessWrapper cli = new CliProcessWrapper().
                 addJavaOption("-Duser.home=" + temporaryUserHome.getRoot().toPath().toString()).
@@ -237,13 +238,11 @@ public class SecurityCommandsTestCase {
 
                 Assert.assertTrue(cli.pushLineAndWaitForResults("security enable-ssl-management --interactive --no-reload"
                                 + " --lets-encrypt"
-                                + " --ca-account=" + CA_ACCOUNT_NAME
-                                + (mgmtInterface == null ? "" : " --management-interface=" + mgmtInterface),
+                                + " --ca-account=" + CA_ACCOUNT_NAME,
                         (useCaAccount ? "Key-store file name (default management.keystore):" : "File name (default accounts.keystore.jks)")));
             } else {
                 Assert.assertTrue(cli.pushLineAndWaitForResults("security enable-ssl-management --interactive --no-reload"
-                                + " --lets-encrypt"
-                                + (mgmtInterface == null ? "" : " --management-interface=" + mgmtInterface),
+                                + " --lets-encrypt",
                         (useCaAccount ? "Key-store file name (default management.keystore):" : "File name (default accounts.keystore.jks)")));
 
                 //skip this when ca Account already created
@@ -282,24 +281,21 @@ public class SecurityCommandsTestCase {
             List<String> tmList = getNames(ctx.getModelControllerClient(), Util.TRUST_MANAGER);
             List<String> sslContextList = getNames(ctx.getModelControllerClient(), Util.SERVER_SSL_CONTEXT);
             ModelNode trustManager = getResource(Util.TRUST_MANAGER, tmList.get(0), null);
-            checkModel(mgmtInterface, KEYSTORE_FILE, Util.JBOSS_SERVER_CONFIG_DIR,
+            checkModel(null, KEYSTORE_FILE, Util.JBOSS_SERVER_CONFIG_DIR,
                     KEYSTORE_PASSWORD, GENERATED_TRUST_STORE_FILE_NAME,
                     GENERATED_KEY_STORE_PASSWORD, ksList.get(1), kmList.get(0),
                     trustManager.get(Util.KEY_STORE).asString(), tmList.get(0), sslContextList.get(0));
 
-            ctx.handle("security disable-ssl-management --no-reload"
-                    + (mgmtInterface == null ? "" : " --management-interface=" + mgmtInterface));
+            ctx.handle("security disable-ssl-management --no-reload");
             cli.clearOutput();
             // Test that existing account-key-store file makes the command to abort.
             Assert.assertTrue(cli.pushLineAndWaitForResults("security enable-ssl-management --interactive  --no-reload"
-                    + " --lets-encrypt"
-                    + (mgmtInterface == null ? "" : " --management-interface=" + mgmtInterface), "File name (default accounts.keystore.jks)"));
+                    + " --lets-encrypt", "File name (default accounts.keystore.jks)"));
             Assert.assertTrue(cli.pushLineAndWaitForResults(ACCOUNTS_KEYSTORE_FILE_NAME, null));
 
             // Test that existing key-store file makes the command to abort.
             Assert.assertTrue(cli.pushLineAndWaitForResults("security enable-ssl-management --interactive  --no-reload"
-                    + " --lets-encrypt"
-                    + (mgmtInterface == null ? "" : " --management-interface=" + mgmtInterface), "File name (default accounts.keystore.jks)"));
+                    + " --lets-encrypt", "File name (default accounts.keystore.jks)"));
             Assert.assertTrue(cli.pushLineAndWaitForResults("", "Password (blank generated):"));
             Assert.assertTrue(cli.pushLineAndWaitForResults("", "Account name (default CertAuthorityAccount)"));
             Assert.assertTrue(cli.pushLineAndWaitForResults("CertAuthorityAccount1", "Contact email(s)"));
@@ -313,8 +309,7 @@ public class SecurityCommandsTestCase {
             //Test that existing Ca account makes the command to abort.
             // Test that existing key-store file makes the command to abort.
             Assert.assertTrue(cli.pushLineAndWaitForResults("security enable-ssl-management --interactive  --no-reload"
-                    + " --lets-encrypt"
-                    + (mgmtInterface == null ? "" : " --management-interface=" + mgmtInterface), "File name (default accounts.keystore.jks)"));
+                    + " --lets-encrypt", "File name (default accounts.keystore.jks)"));
             Assert.assertTrue(cli.pushLineAndWaitForResults("", "Password (blank generated):"));
             Assert.assertTrue(cli.pushLineAndWaitForResults("", "Account name (default CertAuthorityAccount)"));
             Assert.assertTrue(cli.pushLineAndWaitForResults("CertAuthorityAccount", null));
